@@ -331,24 +331,30 @@
             const dosContainer = document.getElementById('dos');
 
             if (sideAd && dosContainer) {
-                // Показываем рекламный блок
-                sideAd.classList.add('show');
-                // Сдвигаем игровой блок
                 document.body.classList.add('ad-shown');
+                sideAd.style.right = '0';
 
-                // Динамически загружаем Яндекс рекламу
-                if (window.Ya && window.Ya.Context) {
+                console.log("Запуск Яндекс рекламы...");
+
+                // Проверяем загружен ли скрипт
+                if (typeof Ya === 'undefined') {
+                    console.error("Ya не загружен");
+                    return;
+                }
+
+                if (!Ya.Context) {
+                    console.error("Ya.Context не доступен");
+                    return;
+                }
+
+                try {
                     Ya.Context.AdvManager.render({
                         "blockId": "R-A-1343857-7",
                         "renderTo": "yandex_rtb_R-A-1343857-7"
                     });
-                } else {
-                    window.yaContextCb.push(() => {
-                        Ya.Context.AdvManager.render({
-                            "blockId": "R-A-1343857-7",
-                            "renderTo": "yandex_rtb_R-A-1343857-7"
-                        });
-                    });
+                    console.log("Реклама запущена");
+                } catch (e) {
+                    console.error("Ошибка рендера:", e);
                 }
             }
         }
