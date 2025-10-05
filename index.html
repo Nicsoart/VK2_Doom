@@ -72,6 +72,54 @@
             opacity: 0 !important;
             pointer-events: none !important;
         }
+
+        /* Баннер */
+        /* Стили для рекламного блока */
+        #side-ad {
+            position: fixed;
+            top: 0;
+            right: -320px; /* Скрыт за пределами экрана */
+            width: 300px;
+            height: 100vh;
+            background: #2c3e50;
+            z-index: 10000;
+            transition: right 0.5s ease-in-out;
+            border-left: 2px solid #34495e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        #side-ad.show {
+            right: 0; /* Показываем блок */
+        }
+
+        #side-ad .ad-content {
+            text-align: center;
+            padding: 20px;
+        }
+
+        #side-ad .ad-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* Сдвигаем игровой блок когда реклама показана */
+        body.ad-shown #dos {
+            margin-right: 300px;
+            transition: margin-right 0.5s ease-in-out;
+        }
     </style>
 </head>
 <body oncontextmenu="return false;"
@@ -83,6 +131,17 @@
     </div>
 
     <div id="dos"></div>
+
+    <!-- Рекламный блок -->
+    <div id="side-ad">
+        <button class="ad-close" onclick="closeAd()">×</button>
+        <div class="ad-content">
+            <h3>Реклама</h3>
+            <p>Здесь может быть ваша реклама</p>
+            <!-- Yandex.RTB R-A-1343857-7 -->
+            <div id="yandex_rtb_R-A-1343857-7"></div>
+        </div>
+    </div>
 
     <script>
         // Инициализируем VK Bridge и приложение
@@ -117,10 +176,14 @@
 
                 // 4. После показа рекламы запускаем основную логику вашей игры
                 loadGameResources();
+                // 5. Запускаем таймер для боковой рекламы
+                scheduleSideAd();
 
             } catch (error) {
                 // Обработка ошибок (например, пользователь отказал в выдаче прав)
                 console.error('Ошибка:', error);
+                loadGameResources();
+                scheduleSideAd();
             }
         }
 
@@ -153,7 +216,6 @@
                     autoSave: true,
                     noCloud: true,
                     kiosk: true,
-                    volume: 0,
                     lang: 'ru',
                     theme: 'dark',
                     pathPrefix: '',
@@ -278,6 +340,52 @@
                         }
                     }
                 })
+            }
+        }
+
+        // Таймер для показа рекламы через 1 минуту
+        let adTimer;
+
+        function scheduleSideAd() {
+            // Показываем рекламу через 600 секунд
+            adTimer = setTimeout(showSideAd, 1000);
+        }
+
+        function showSideAd() {
+            const sideAd = document.getElementById('side-ad');
+            const dosContainer = document.getElementById('dos');
+
+            if (sideAd && dosContainer) {
+                // Показываем рекламный блок
+                sideAd.classList.add('show');
+                // Сдвигаем игровой блок
+                document.body.classList.add('ad-shown');
+
+                // Запускаем Яндекс Рекламу
+                if (window.yaContextCb) {
+                    window.yaContextCb.push(() => {
+                        Ya.Context.AdvManager.render({
+                            "blockId": "R-A-1343857-7",
+                            "renderTo": "yandex_rtb_R-A-1343857-7"
+                        });
+                    });
+                }
+            }
+        }
+
+        function closeAd() {
+            const sideAd = document.getElementById('side-ad');
+            const dosContainer = document.getElementById('dos');
+
+            if (sideAd && dosContainer) {
+                // Скрываем рекламный блок
+                sideAd.classList.remove('show');
+                // Возвращаем игровой блок на место
+                document.body.classList.remove('ad-shown');
+
+                // Можно перезапустить таймер, если нужно показывать снова
+                // clearTimeout(adTimer);
+                // scheduleSideAd();
             }
         }
         // Запускаем всю логику при загрузке страницы
