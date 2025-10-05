@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>DOSBox</title>
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #1d232b;
+        }
+        #dos {
+            width: 100%;
+            height: 100%;
+        }
+        .bg-black.h-full.flex-grow.overflow-hidden.relative {
+            background-color: #1d232b !important;
+        }
+        .absolute.right-10.bottom-10.pointer-events-none.opacity-50,
+        .absolute.right-10.bottom-10.pointer-events-none.opacity-80 {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #1d232b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            pointer-events: all;
+        }
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #3c4959;
+            border-top: 5px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        body {
+          user-select: none;
+          -webkit-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+        }
+        * {
+          user-select: none;
+          -webkit-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+        }
+        /* Добавьте этот код здесь */
+        .text-xl,
+        .text-sm {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;"
+      onselectstart="return false;"
+      ondragstart="return false;"
+      style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;">
+    <div id="loading-screen">
+        <div class="loader"></div>
+    </div>
+
+    <div id="dos"></div>
+
+    <script>
+        // Инициализируем VK Bridge и приложение
+        async function initApp() {
+            try {
+                // 1. Отправляем клиенту (приложению ВКонтакте) сигнал об инициализации
+                await vkBridge.send('VKWebAppInit');
+
+                // 2. Запрашиваем ключ доступа (токен) пользователя.
+                // Без этого ключа вызов большинства API-методов, включая показ рекламы, невозможен.
+                const tokenData = await vkBridge.send('VKWebAppGetAuthToken', {
+                    app_id: '7hzNIcKREO5lzw7evIJr', // Замените на ID вашего приложения
+                    scope: 'ads' // Запрашиваем право на показ рекламы
+                });
+
+                const accessToken = tokenData.access_token;
+
+                // 3. Показываем рекламу
+                // Этот метод показывает полноэкранную рекламу (interstitial).
+                const adResult = await vkBridge.send('VKWebAppShowNativeAds', {
+                    ad_format: 'interstitial' // Межстраничный баннер
+                });
+
+                // Проверяем результат показа рекламы
+                if (adResult.result) {
+                    // Реклама была показана (пользователь мог закрыть ее)
+                    console.log("Реклама показана успешно");
+                } else {
+                    // Реклама не была показана (например, нет заполнения)
+                    console.log("Не удалось показать рекламу");
+                }
+
+                // 4. После показа рекламы запускаем основную логику вашей игры
+                loadGameResources();
+
+            } catch (error) {
+                // Обработка ошибок (например, пользователь отказал в выдаче прав)
+                console.error('Ошибка:', error);
+            }
+        }
+
+        function loadGameResources() {
+            // Динамически загружаем js-dos ресурсы
+            const cssLink = document.createElement('link');
+            cssLink.rel = 'stylesheet';
+            cssLink.href = 'js-dos.css';
+            document.head.appendChild(cssLink);
+
+            const script = document.createElement('script');
+            script.src = 'js-dos.js';
+            script.onload = function() {
+                // Когда js-dos загружен, запускаем игру
+                StartGameLoading();
+            };
+            document.head.appendChild(script);
+        }
+
+        function StartGameLoading() {
+            document.getElementById('loading-screen').style.display = 'none';
+            let game_url = 'game.jsdos'; // значение по умолчанию
+            initializeGame(game_url);
+
+            function initializeGame(gameUrl) {
+                props = Dos(document.getElementById('dos'), {
+                    url: gameUrl,
+                    softFullscreen: true,
+                    autoStart: true,
+                    autoSave: true,
+                    noCloud: true,
+                    kiosk: true,
+                    volume: 0,
+                    lang: 'ru',
+                    theme: 'dark',
+                    pathPrefix: '',
+                    noCursor: true,
+                    //mouseSensitivity: 1.0,
+                    //mouseCapture: true,
+                    onEvent: function(event, ci) {
+                        // Логируем специфические события с дополнительной информацией
+                        switch (event) {
+                            case 'emu-ready':
+                                document.getElementById('loading-screen').style.display = 'flex';
+
+                                console.log('Эмулятор готов к работе');
+                                break;
+                            case 'ci-ready':
+
+                                  setTimeout(() => {
+                                    const enterDownEvent = new KeyboardEvent('keydown', {
+                                        key: 'Enter',
+                                        code: 'Enter',
+                                        keyCode: 13,
+                                        which: 13,
+                                        bubbles: true
+                                    });
+                                    const enterUpEvent = new KeyboardEvent('keyup', {
+                                        key: 'Enter',
+                                        code: 'Enter',
+                                        keyCode: 13,
+                                        which: 13,
+                                        bubbles: true
+                                    });
+
+                                    document.dispatchEvent(enterDownEvent);
+                                    document.dispatchEvent(enterUpEvent);
+                                    console.log('Enter нажат');
+
+                                    const exitInterval = setInterval(() => {
+                                        if (ci.exited) {
+                                            // Определяем текст в зависимости от языка
+                                            let endGameText = 'Игра завершена. Игра не "зависла", Вы можете продолжить игру. Нажмите любую клавишу для перезапуска';
+
+                                            console.log("Полная очистка страницы");
+
+                                            // Создаем div для сообщения, который перекрывает весь контент
+                                            const messageDiv = document.createElement('div');
+                                            messageDiv.innerHTML = `
+                                                <div style="
+                                                    position: fixed;
+                                                    top: 0;
+                                                    left: 0;
+                                                    width: 100%;
+                                                    height: 100%;
+                                                    display: flex;
+                                                    justify-content: center;
+                                                    align-items: center;
+                                                    background-color: #1d232b;
+                                                    color: white;
+                                                    font-family: Arial, sans-serif;
+                                                    font-size: 24px;
+                                                    text-align: center;
+                                                    z-index: 9999;
+                                                ">
+                                                    ${endGameText}
+                                                </div>
+                                            `;
+
+                                            document.body.appendChild(messageDiv);
+
+                                            // Обработчик перезагрузки (сработает только один раз)
+                                            const restartGame = () => {
+
+                                                // Удаляем все обработчики событий
+                                                document.removeEventListener('keydown', restartGame);
+                                                document.removeEventListener('mousedown', restartGame);
+                                                document.removeEventListener('touchstart', restartGame);
+
+                                                // Удаляем сообщение
+                                                if (messageDiv.parentNode) {
+                                                    messageDiv.parentNode.removeChild(messageDiv);
+                                                }
+
+                                                // Затем запускаем загрузку игры
+                                                StartGameLoading();
+                                            };
+
+                                            // Вешаем обработчики на все типы ввода
+                                            document.addEventListener('keydown', restartGame, { once: true });
+                                            document.addEventListener('mousedown', restartGame, { once: true });
+                                            document.addEventListener('touchstart', restartGame, { once: true });
+
+                                            clearInterval(exitInterval); // Правильное использование
+                                        }
+                                    }, 100);
+
+                                    console.log('DOS готов к выполнению команд');
+                                    setTimeout(() => {
+                                        document.getElementById('loading-screen').style.display = 'none';
+
+                                        // Сохранение при любом действии пользователя
+                                        const saveOnInteraction = () => {
+                                            setTimeout(() => {
+                                                props.save().then((success) => {
+                                                    console.log('Автосохранение:', success ? 'успешно' : 'не удалось');
+                                                }).catch((error) => {
+                                                    console.error('Ошибка автосохранения:', error);
+                                                });
+                                            }, 2000);
+                                        };
+
+                                        // Сохраняем при нажатии клавиш
+                                        document.addEventListener('keyup', saveOnInteraction);
+
+                                        // Сохраняем при клике мыши
+                                        document.addEventListener('mouseup', saveOnInteraction);
+
+                                        // Сохраняем при касании на сенсорных устройствах
+                                        document.addEventListener('touchend', saveOnInteraction);
+                                    }, 3000);
+                                }, 5000);
+
+                                break;
+                        }
+                    }
+                })
+            }
+        }
+        // Запускаем всю логику при загрузке страницы
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
