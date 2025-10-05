@@ -126,6 +126,9 @@
     </div>
 
     <script>
+        let props = null;
+        let adLoaded = false;
+        let gameLoaded = false;
         // Инициализируем VK Bridge и приложение
         async function initApp() {
             try {
@@ -141,23 +144,19 @@
 
                 const accessToken = tokenData.access_token;
 
-                // 3. Показываем рекламу
+                // 3. Запускаем основную логику вашей игры
+                loadGameResources();
+
+                // 4. Показываем рекламу
                 // Этот метод показывает полноэкранную рекламу (interstitial).
                 const adResult = await vkBridge.send('VKWebAppShowNativeAds', {
                     ad_format: 'interstitial' // Межстраничный баннер
                 });
 
-                // Проверяем результат показа рекламы
-                if (adResult.result) {
-                    // Реклама была показана (пользователь мог закрыть ее)
-                    console.log("Реклама показана успешно");
-                } else {
-                    // Реклама не была показана (например, нет заполнения)
-                    console.log("Не удалось показать рекламу");
-                }
+                adLoaded = true;
+                if (gameLoaded)
+                  props.setVolume(1);
 
-                // 4. После показа рекламы запускаем основную логику вашей игры
-                loadGameResources();
                 // 5. Запускаем таймер для боковой рекламы
                 scheduleSideAd();
 
@@ -198,6 +197,7 @@
                     autoSave: true,
                     noCloud: true,
                     kiosk: true,
+                    volume: 0,
                     lang: 'ru',
                     theme: 'dark',
                     pathPrefix: '',
@@ -295,7 +295,9 @@
                                     console.log('DOS готов к выполнению команд');
                                     setTimeout(() => {
                                         document.getElementById('loading-screen').style.display = 'none';
-                                        props.setVolume(1);
+                                        gameLoaded = true;
+                                        if (adLoaded)
+                                          props.setVolume(1);
 
                                         // Сохранение при любом действии пользователя
                                         const saveOnInteraction = () => {
