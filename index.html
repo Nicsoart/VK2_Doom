@@ -336,29 +336,31 @@
 
                 console.log("Запуск Яндекс рекламы...");
 
-                // Проверяем загружен ли скрипт
-                if (typeof Ya === 'undefined') {
-                    console.error("Ya не загружен");
-                    return;
+                // Ждем загрузки Ya
+                if (window.Ya && window.Ya.Context) {
+                    loadYandexAd();
+                } else {
+                    // Ждем через callback
+                    window.yaContextCb.push(loadYandexAd);
                 }
+            }
+        }
 
-                if (!Ya.Context) {
-                    console.error("Ya.Context не доступен");
-                    return;
-                }
-
+        function loadYandexAd() {
+            if (window.Ya && window.Ya.Context && window.Ya.Context.AdvManager) {
                 try {
                     Ya.Context.AdvManager.render({
                         "blockId": "R-A-1343857-7",
                         "renderTo": "yandex_rtb_R-A-1343857-7"
                     });
-                    console.log("Реклама запущена");
+                    console.log("Яндекс реклама запущена");
                 } catch (e) {
-                    console.error("Ошибка рендера:", e);
+                    console.error("Ошибка:", e);
                 }
+            } else {
+                console.error("Ya.Context.AdvManager не доступен");
             }
-        }
-        // Запускаем всю логику при загрузке страницы
+        }        // Запускаем всю логику при загрузке страницы
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
