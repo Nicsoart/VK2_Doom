@@ -8,6 +8,14 @@
     <script>
         window.yaContextCb = window.yaContextCb || [];
     </script>
+    <script>
+        window.yaContextCb.push(() => {
+            Ya.Context.AdvManager.render({
+                "blockId": "R-A-1343857-7",
+                "renderTo": "yandex_rtb_R-A-1343857-7"
+            });
+        })
+    </script>
     <script src="https://yandex.ru/ads/system/context.js" async></script>
     <style>
         html, body {
@@ -333,34 +341,9 @@
             if (sideAd && dosContainer) {
                 document.body.classList.add('ad-shown');
                 sideAd.style.right = '0';
-
-                console.log("Запуск Яндекс рекламы...");
-
-                // Ждем загрузки Ya
-                if (window.Ya && window.Ya.Context) {
-                    loadYandexAd();
-                } else {
-                    // Ждем через callback
-                    window.yaContextCb.push(loadYandexAd);
-                }
+                console.log("Баннер показан");
             }
         }
-
-        function loadYandexAd() {
-            if (window.Ya && window.Ya.Context && window.Ya.Context.AdvManager) {
-                try {
-                    Ya.Context.AdvManager.render({
-                        "blockId": "R-A-1343857-7",
-                        "renderTo": "yandex_rtb_R-A-1343857-7"
-                    });
-                    console.log("Яндекс реклама запущена");
-                } catch (e) {
-                    console.error("Ошибка:", e);
-                }
-            } else {
-                console.error("Ya.Context.AdvManager не доступен");
-            }
-        }        // Запускаем всю логику при загрузке страницы
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
