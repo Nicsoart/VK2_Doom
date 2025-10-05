@@ -203,7 +203,7 @@
                     pathPrefix: '',
                     noCursor: true,
                     //mouseSensitivity: 1.0,
-                    //mouseCapture: true,
+                    mouseCapture: true,
                     onEvent: function(event, ci) {
                         // Логируем специфические события с дополнительной информацией
                         switch (event) {
@@ -295,6 +295,7 @@
                                     console.log('DOS готов к выполнению команд');
                                     setTimeout(() => {
                                         document.getElementById('loading-screen').style.display = 'none';
+                                        props.setVolume(1);
 
                                         // Сохранение при любом действии пользователя
                                         const saveOnInteraction = () => {
@@ -321,18 +322,7 @@
                                 break;
                         }
                     }
-                });
-
-                // Разблокируем аудио после пользовательского взаимодействия
-                document.addEventListener('click', function unlockAudio() {
-                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    const oscillator = audioContext.createOscillator();
-                    oscillator.connect(audioContext.destination);
-                    oscillator.start();
-                    oscillator.stop(audioContext.currentTime + 0.001);
-                    console.log("Аудио разблокировано");
-                    document.removeEventListener('click', unlockAudio);
-                }, { once: true });
+                })
             }
         }
 
