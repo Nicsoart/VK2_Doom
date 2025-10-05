@@ -320,7 +320,15 @@
                                 break;
                         }
                     }
-                })
+                });
+
+                // Разблокируем аудио после пользовательского взаимодействия
+                document.addEventListener('click', function unlockAudio() {
+                    props.soundBlob().then(() => {
+                        console.log("Аудио разблокировано");
+                    }).catch(console.error);
+                    document.removeEventListener('click', unlockAudio);
+                }, { once: true });
             }
         }
 
