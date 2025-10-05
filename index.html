@@ -325,9 +325,12 @@
 
                 // Разблокируем аудио после пользовательского взаимодействия
                 document.addEventListener('click', function unlockAudio() {
-                    props.soundBlob().then(() => {
-                        console.log("Аудио разблокировано");
-                    }).catch(console.error);
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    oscillator.connect(audioContext.destination);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.001);
+                    console.log("Аудио разблокировано");
                     document.removeEventListener('click', unlockAudio);
                 }, { once: true });
             }
