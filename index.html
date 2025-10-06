@@ -198,7 +198,7 @@
                     noCloud: true,
                     kiosk: true,
                     volume: 0,
-                    lang: 'ru',
+                    lang: 'en',
                     theme: 'dark',
                     pathPrefix: '',
                     noCursor: true,
@@ -208,6 +208,17 @@
                         // Логируем специфические события с дополнительной информацией
                         switch (event) {
                             case 'emu-ready':
+
+                                // Перевод в русской версии
+                                const fixTypoInterval = setInterval(() => {
+                                  const elements = document.querySelectorAll('.text-4xl');
+                                          elements.forEach(el => {
+                                              if (el.textContent.includes('что бы')) {
+                                                  el.textContent = 'Нажмите, чтобы захватить мышь';
+                                              }
+                                          });
+                                }, 500);
+
                                 document.getElementById('loading-screen').style.display = 'flex';
 
                                 console.log('Эмулятор готов к работе');
@@ -237,7 +248,7 @@
                                     const exitInterval = setInterval(() => {
                                         if (ci.exited) {
                                             // Определяем текст в зависимости от языка
-                                            let endGameText = 'Игра завершена. Игра не "зависла", Вы можете продолжить игру. Нажмите любую клавишу для перезапуска';
+                                            let endGameText = 'End Game. The game is not "frozen", you can continue the game. Press any key to restart'; // По умолчанию английский
 
                                             console.log("Полная очистка страницы");
 
@@ -328,12 +339,9 @@
             }
         }
 
-        // Таймер для показа рекламы через 1 минуту
-        let adTimer;
-
         function scheduleSideAd() {
             // Показываем рекламу через 600 секунд
-            adTimer = setTimeout(showSideAd, 30000);
+            setTimeout(showSideAd, 10000);
         }
 
         function showSideAd() {
